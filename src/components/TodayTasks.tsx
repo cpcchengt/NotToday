@@ -16,6 +16,55 @@ type TodayTasksProps = {
   error: string | null;
 };
 
+const chineseNumerals = [
+  "",
+  "一",
+  "二",
+  "三",
+  "四",
+  "五",
+  "六",
+  "七",
+  "八",
+  "九",
+  "十",
+];
+
+function formatChineseLunarDay(day: number) {
+  if (day <= 10) {
+    return `初${chineseNumerals[day]}`;
+  }
+
+  if (day < 20) {
+    return `十${chineseNumerals[day - 10]}`;
+  }
+
+  if (day === 20) {
+    return "二十";
+  }
+
+  if (day < 30) {
+    return `廿${chineseNumerals[day - 20]}`;
+  }
+
+  return "三十";
+}
+
+export function formatChineseLunarDate(value: Date) {
+  const parts = new Intl.DateTimeFormat("zh-CN-u-ca-chinese", {
+    month: "long",
+    day: "numeric",
+  }).formatToParts(value);
+
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = Number(parts.find((part) => part.type === "day")?.value);
+
+  if (!month || !Number.isInteger(day) || day < 1 || day > 30) {
+    return `农历${parts.map((part) => part.value).join("")}`;
+  }
+
+  return `农历${month}${formatChineseLunarDay(day)}`;
+}
 const today = new Date();
 const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(
   today,
@@ -24,6 +73,7 @@ const date = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
 }).format(today);
+const lunarDate = formatChineseLunarDate(today);
 
 export function TodayTasks({
   tasks,
@@ -50,7 +100,7 @@ export function TodayTasks({
           </h1>
           <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-3 py-1 text-xs text-stone-500 dark:bg-stone-800 dark:text-stone-300">
             <Sun className="text-amber-500" size={14} strokeWidth={1.8} />
-            专注今天
+            {lunarDate}
           </span>
         </div>
 
@@ -86,7 +136,9 @@ export function TodayTasks({
           </span>
         </div>
         <span className="text-sm text-stone-500 dark:text-stone-400">
-          <strong className="font-medium text-[#b73a2f]">{completedCount}/{tasks.length}</strong>{" "}
+          <strong className="font-medium text-[#b73a2f]">
+            {completedCount}/{tasks.length}
+          </strong>{" "}
           完成
         </span>
       </div>

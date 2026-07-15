@@ -13,7 +13,6 @@ const priorityClasses: Record<TaskPriority, string> = {
   medium: "bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-300",
   high: "bg-red-100 text-[#b73a2f] dark:bg-red-950 dark:text-red-300",
 };
-
 const priorityBorders: Record<TaskPriority, string> = {
   low: "border-l-stone-400 dark:border-l-stone-500",
   medium: "border-l-orange-400 dark:border-l-orange-400",
@@ -189,7 +188,7 @@ export function TaskItem({
                     <ChevronDown size={11} />
                   </button>
                   {isPriorityMenuOpen ? (
-                    <div className="absolute left-0 top-7 z-20 w-28 rounded-xl border border-stone-200 bg-white p-1 shadow-lg dark:border-stone-700 dark:bg-stone-900">
+                    <div className="absolute right-0 top-8 z-50 w-28 rounded-xl border border-stone-200 bg-white p-1 shadow-lg dark:border-stone-700 dark:bg-stone-900">
                       {(["low", "medium", "high"] as const).map((priority) => (
                         <button className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[10px] font-medium leading-none text-stone-500 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800" key={priority} onClick={() => { void onUpdatePriority(task.id, priority); setIsPriorityMenuOpen(false); }} type="button">
                           {priority === "low" ? "低优先级" : priority === "medium" ? "中优先级" : "高优先级"}

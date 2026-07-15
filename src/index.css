@@ -23,8 +23,10 @@ body {
 }
 
 button,
-input {
-  font: inherit;
+input,
+textarea,
+select {
+  font-family: inherit;
 }
 
 #root {
