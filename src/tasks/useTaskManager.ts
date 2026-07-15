@@ -81,13 +81,14 @@ export function useTaskManager() {
       title: string;
       priority: TaskPriority;
       remindAt: string | null;
+      scheduledDate: string;
     }) => {
       const now = new Date().toISOString();
       const task = createTask({
         id: crypto.randomUUID(),
         title: input.title,
         priority: input.priority,
-        scheduledDate: today,
+        scheduledDate: input.scheduledDate,
         remindAt: input.remindAt
           ? new Date(input.remindAt).toISOString()
           : null,
@@ -126,6 +127,13 @@ export function useTaskManager() {
       await runTaskAction(async () => {
         await taskRepository.updatePriority(id, priority, updatedAt);
         dispatch({ type: "updatePriority", id, priority, updatedAt });
+      });
+    },
+    updateTaskScheduledDate: async (id: string, scheduledDate: string) => {
+      const updatedAt = new Date().toISOString();
+      await runTaskAction(async () => {
+        await taskRepository.updateScheduledDate(id, scheduledDate, updatedAt);
+        dispatch({ type: "updateScheduledDate", id, scheduledDate, updatedAt });
       });
     },
     updateTaskReminder: async (id: string, remindAt: string | null) => {

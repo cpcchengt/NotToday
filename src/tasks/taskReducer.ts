@@ -12,6 +12,12 @@ export type TaskAction =
       updatedAt: string;
     }
   | {
+      type: "updateScheduledDate";
+      id: string;
+      scheduledDate: string;
+      updatedAt: string;
+    }
+  | {
       type: "updateReminder";
       id: string;
       remindAt: string | null;
@@ -42,6 +48,12 @@ export function taskReducer(tasks: Task[], action: TaskAction): Task[] {
       return tasks.map((task) =>
         task.id === action.id
           ? { ...task, priority: action.priority, updatedAt: action.updatedAt }
+          : task,
+      );
+    case "updateScheduledDate":
+      return tasks.map((task) =>
+        task.id === action.id
+          ? { ...task, scheduledDate: action.scheduledDate, updatedAt: action.updatedAt }
           : task,
       );
     case "updateReminder":

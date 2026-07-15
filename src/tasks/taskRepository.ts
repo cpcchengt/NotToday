@@ -154,6 +154,18 @@ export const taskRepository = {
     );
   },
 
+  async updateScheduledDate(
+    id: string,
+    scheduledDate: string,
+    updatedAt: string,
+  ): Promise<void> {
+    await executeUpdate(
+      "UPDATE tasks SET scheduled_date = $1, updated_at = $2 WHERE id = $3",
+      [scheduledDate, updatedAt, id],
+      "更新任务日期",
+    );
+  },
+
   async updateReminder(
     id: string,
     remindAt: string | null,

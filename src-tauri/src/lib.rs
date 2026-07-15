@@ -1,7 +1,7 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
-    Manager, WindowEvent,
+    Manager, RunEvent, WindowEvent,
 };
 use tauri_plugin_sql::{Migration, MigrationKind};
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
@@ -118,6 +118,11 @@ pub fn run() {
                 let _ = window.hide();
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building Tauri application")
+        .run(|app, event| {
+            if let RunEvent::Ready = event {
+                show_main_window(app);
+            }
+        });
 }

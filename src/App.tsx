@@ -18,12 +18,13 @@ function App() {
     toggleTask,
     updateTaskPriority,
     updateTaskReminder,
+    updateTaskScheduledDate,
     updateTaskTitle,
   } = useTaskManager();
 
   return (
-    <main className="min-h-screen bg-[#fbf8f4] text-stone-900 dark:bg-stone-900 dark:text-stone-100">
-      <section className="flex min-h-screen flex-col overflow-hidden bg-[#fbf8f4] dark:bg-stone-900">
+    <main className="h-screen overflow-hidden bg-[#fbf8f4] text-stone-900 dark:bg-stone-900 dark:text-stone-100">
+      <section className="flex h-full min-h-0 flex-col overflow-hidden bg-[#fbf8f4] dark:bg-stone-900">
         <WindowHeader onOpenSettings={() => setIsSettingsOpen(true)} />
         {isSettingsOpen ? (
           <SettingsPanel onBack={() => setIsSettingsOpen(false)} />
@@ -36,17 +37,18 @@ function App() {
               onToggle={toggleTask}
               onUpdatePriority={updateTaskPriority}
               onUpdateReminder={updateTaskReminder}
+              onUpdateScheduledDate={updateTaskScheduledDate}
               onUpdateTitle={updateTaskTitle}
               tasks={todayTasks}
             />
-            <div className="px-5 pb-4">
+            <div className="px-5 pb-4 pt-3">
               <AddTaskButton onAdd={addTask} />
             </div>
             <footer className="flex items-center justify-between border-t border-stone-200/80 px-5 py-3 text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
               <div className="flex items-center gap-2">
                 <Clock3 size={17} strokeWidth={1.7} />
                 <span>专注时长</span>
-                <strong className="font-normal text-[#8b5e52] dark:text-stone-300">
+                <strong className="font-medium text-[#8b5e52] dark:text-stone-300">
                   2h 17m
                 </strong>
               </div>

@@ -10,6 +10,7 @@ type TodayTasksProps = {
   onUpdateTitle: (id: string, title: string) => Promise<void>;
   onUpdatePriority: (id: string, priority: TaskPriority) => Promise<void>;
   onUpdateReminder: (id: string, remindAt: string | null) => Promise<void>;
+  onUpdateScheduledDate: (id: string, scheduledDate: string) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
   isLoading: boolean;
   error: string | null;
@@ -30,6 +31,7 @@ export function TodayTasks({
   onUpdateTitle,
   onUpdatePriority,
   onUpdateReminder,
+  onUpdateScheduledDate,
   onRemove,
   isLoading,
   error,
@@ -37,7 +39,7 @@ export function TodayTasks({
   const completedCount = tasks.filter((task) => task.completed).length;
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pb-4 pt-3">
+    <section className="flex min-h-0 flex-1 flex-col px-5 pb-4 pt-3">
       <div className="grid gap-4 min-[420px]:grid-cols-[minmax(0,0.88fr)_minmax(0,1fr)] min-[420px]:items-center">
         <div className="px-1 py-2">
           <p className="text-sm text-stone-500 dark:text-stone-400">
@@ -84,7 +86,7 @@ export function TodayTasks({
           </span>
         </div>
         <span className="text-sm text-stone-500 dark:text-stone-400">
-          <strong className="font-normal text-[#b73a2f]">{completedCount}/{tasks.length}</strong>{" "}
+          <strong className="font-medium text-[#b73a2f]">{completedCount}/{tasks.length}</strong>{" "}
           完成
         </span>
       </div>
@@ -98,32 +100,35 @@ export function TodayTasks({
         </p>
       ) : null}
 
-      {isLoading ? (
-        <div className="mt-4 rounded-2xl border border-dashed border-stone-300 px-4 py-8 text-center text-sm text-stone-500 dark:border-stone-700 dark:text-stone-400">
-          正在加载今天的任务…
-        </div>
-      ) : tasks.length === 0 ? (
-        <div className="mt-4 rounded-2xl border border-dashed border-stone-300 bg-white/45 px-4 py-8 text-center dark:border-stone-700 dark:bg-stone-900/60">
-          <p className="text-sm">今天还没有任务</p>
-          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-            从下方写下第一件要完成的事。
-          </p>
-        </div>
-      ) : (
-        <ul className="mt-4 space-y-3" aria-label="今天的任务">
-          {tasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              onRemove={onRemove}
-              onToggle={onToggle}
-              onUpdatePriority={onUpdatePriority}
-              onUpdateReminder={onUpdateReminder}
-              onUpdateTitle={onUpdateTitle}
-              task={task}
-            />
-          ))}
-        </ul>
-      )}
+      <div className="scrollbar-hidden mt-4 min-h-0 flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="rounded-2xl border border-dashed border-stone-300 px-4 py-8 text-center text-sm text-stone-500 dark:border-stone-700 dark:text-stone-400">
+            正在加载今天的任务…
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-stone-300 bg-white/45 px-4 py-8 text-center dark:border-stone-700 dark:bg-stone-900/60">
+            <p className="text-sm">今天还没有任务</p>
+            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+              从下方写下第一件要完成的事。
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-3 pb-1" aria-label="今天的任务">
+            {tasks.map((task) => (
+              <TaskItem
+                key={task.id}
+                onRemove={onRemove}
+                onToggle={onToggle}
+                onUpdatePriority={onUpdatePriority}
+                onUpdateReminder={onUpdateReminder}
+                onUpdateScheduledDate={onUpdateScheduledDate}
+                onUpdateTitle={onUpdateTitle}
+                task={task}
+              />
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }
