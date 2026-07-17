@@ -1,7 +1,7 @@
 # NotToday
 
 <p align="center">
-  <img src="src-tauri/icons/128x128.png" alt="NotToday logo" width="96" height="96" />
+  <img src="docs/assets/logo.png" alt="NotToday logo" width="128" height="128" />
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@ NotToday 是一个面向 Windows 桌面的轻量任务管理应用。它的核�
 ## Preview
 
 <p align="center">
-  <img src="src/assets/background.png" alt="NotToday illustration" width="420" />
+  <img src="docs/assets/preview.png" alt="NotToday app preview" width="720" />
 </p>
 
 ## Features
