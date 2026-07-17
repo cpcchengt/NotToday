@@ -12,6 +12,7 @@ function makeTask(id = "task-1") {
     title: "  写任务测试  ",
     priority: "medium",
     scheduledDate: today,
+    scheduledTime: "16:00",
     now,
   });
 }
@@ -101,6 +102,7 @@ describe("task helpers", () => {
         title: "   ",
         priority: "low",
         scheduledDate: today,
+        scheduledTime: "16:00",
         now,
       }),
     ).toThrow("Task title cannot be empty.");

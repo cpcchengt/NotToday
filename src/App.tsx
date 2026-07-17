@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Clock3, Coffee, Moon } from "lucide-react";
+import { CheckCircle2, Coffee, Moon } from "lucide-react";
 
 import { AddTaskButton } from "./components/AddTaskButton";
 import { SettingsPanel } from "./components/SettingsPanel";
@@ -21,6 +21,7 @@ function App() {
     updateTaskScheduledDate,
     updateTaskTitle,
   } = useTaskManager();
+  const completedGoalCount = tasks.filter((task) => task.completed).length;
 
   return (
     <main className="h-screen overflow-hidden bg-[#fbf8f4] text-stone-900 dark:bg-stone-900 dark:text-stone-100">
@@ -46,10 +47,10 @@ function App() {
             </div>
             <footer className="flex items-center justify-between border-t border-stone-200/80 px-5 py-3 text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
               <div className="flex items-center gap-2">
-                <Clock3 size={17} strokeWidth={1.7} />
-                <span>专注时长</span>
+                <CheckCircle2 size={17} strokeWidth={1.7} />
+                <span>已完成目标</span>
                 <strong className="font-medium text-[#8b5e52] dark:text-stone-300">
-                  2h 17m
+                  {completedGoalCount}
                 </strong>
               </div>
               <div className="flex items-center gap-4">

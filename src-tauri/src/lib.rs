@@ -52,6 +52,14 @@ pub fn run() {
             "#,
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "add_task_scheduled_time",
+            sql: r#"
+                ALTER TABLE tasks ADD COLUMN scheduled_time TEXT NOT NULL DEFAULT '16:00';
+            "#,
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

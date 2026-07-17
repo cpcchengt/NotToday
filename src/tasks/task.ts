@@ -9,6 +9,7 @@ export type Task = {
   completedAt: string | null;
   priority: TaskPriority;
   scheduledDate: string;
+  scheduledTime: string;
   remindAt: string | null;
   reminderSentAt: string | null;
   createdAt: string;
@@ -20,6 +21,7 @@ type CreateTaskInput = {
   title: string;
   priority: TaskPriority;
   scheduledDate: string;
+  scheduledTime: string;
   remindAt?: string | null;
   now: string;
 };
@@ -38,6 +40,7 @@ export function createTask(input: CreateTaskInput): Task {
     completedAt: null,
     priority: input.priority,
     scheduledDate: input.scheduledDate,
+    scheduledTime: input.scheduledTime,
     remindAt: input.remindAt ?? null,
     reminderSentAt: null,
     createdAt: input.now,

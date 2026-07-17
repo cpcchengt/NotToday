@@ -10,7 +10,11 @@ type TodayTasksProps = {
   onToggle: (id: string) => Promise<void>;
   onUpdateTitle: (id: string, title: string) => Promise<void>;
   onUpdatePriority: (id: string, priority: TaskPriority) => Promise<void>;
-  onUpdateReminder: (id: string, remindAt: string | null) => Promise<void>;
+  onUpdateReminder: (
+    id: string,
+    remindAt: string | null,
+    scheduledTime: string,
+  ) => Promise<void>;
   onUpdateScheduledDate: (id: string, scheduledDate: string) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
   isLoading: boolean;
@@ -91,7 +95,7 @@ function isCompletedToday(task: Task, todayKey: string) {
 function getTaskSortTime(task: Task) {
   if (task.remindAt) return new Date(task.remindAt).getTime();
 
-  return new Date(`${task.scheduledDate}T23:59:59`).getTime();
+  return new Date(`${task.scheduledDate}T${task.scheduledTime}`).getTime();
 }
 
 function sortTasks(tasks: Task[]) {

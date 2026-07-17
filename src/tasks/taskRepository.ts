@@ -11,6 +11,7 @@ type TaskRow = {
   completed_at: string | null;
   priority: TaskPriority;
   scheduled_date: string | null;
+  scheduled_time: string | null;
   remind_at: string | null;
   reminder_sent_at: string | null;
   created_at: string;
@@ -43,6 +44,14 @@ async function getDatabase(): Promise<Database> {
 }
 
 function toTask(row: TaskRow): Task {
+  const reminderTime = row.remind_at
+    ? new Date(row.remind_at).toLocaleTimeString("zh-CN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+    : null;
+
   return {
     id: row.id,
     title: row.title,
@@ -50,6 +59,7 @@ function toTask(row: TaskRow): Task {
     completedAt: row.completed_at,
     priority: row.priority,
     scheduledDate: row.scheduled_date ?? "",
+    scheduledTime: row.scheduled_time ?? reminderTime ?? "16:00",
     remindAt: row.remind_at,
     reminderSentAt: row.reminder_sent_at,
     createdAt: row.created_at,
@@ -87,7 +97,7 @@ export const taskRepository = {
     try {
       const database = await getDatabase();
       const rows = await database.select<TaskRow[]>(
-        `SELECT id, title, completed, completed_at, priority, scheduled_date, remind_at, reminder_sent_at, created_at, updated_at
+        `SELECT id, title, completed, completed_at, priority, scheduled_date, scheduled_time, remind_at, reminder_sent_at, created_at, updated_at
          FROM tasks
          ORDER BY scheduled_date ASC, created_at ASC`,
       );
@@ -102,7 +112,7 @@ export const taskRepository = {
     try {
       const database = await getDatabase();
       const rows = await database.select<TaskRow[]>(
-        `SELECT id, title, completed, completed_at, priority, scheduled_date, remind_at, reminder_sent_at, created_at, updated_at
+        `SELECT id, title, completed, completed_at, priority, scheduled_date, scheduled_time, remind_at, reminder_sent_at, created_at, updated_at
          FROM tasks
          WHERE scheduled_date = $1
          ORDER BY created_at ASC`,
@@ -118,8 +128,8 @@ export const taskRepository = {
   async create(task: Task): Promise<void> {
     await executeUpdate(
       `INSERT INTO tasks (
-        id, title, completed, completed_at, priority, scheduled_date, remind_at, reminder_sent_at, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        id, title, completed, completed_at, priority, scheduled_date, scheduled_time, remind_at, reminder_sent_at, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
       [
         task.id,
         task.title,
@@ -127,6 +137,7 @@ export const taskRepository = {
         task.completedAt,
         task.priority,
         task.scheduledDate,
+        task.scheduledTime,
         task.remindAt,
         task.reminderSentAt,
         task.createdAt,
@@ -188,11 +199,12 @@ export const taskRepository = {
   async updateReminder(
     id: string,
     remindAt: string | null,
+    scheduledTime: string,
     updatedAt: string,
   ): Promise<void> {
     await executeUpdate(
-      "UPDATE tasks SET remind_at = $1, reminder_sent_at = NULL, updated_at = $2 WHERE id = $3",
-      [remindAt, updatedAt, id],
+      "UPDATE tasks SET scheduled_time = $1, remind_at = $2, reminder_sent_at = NULL, updated_at = $3 WHERE id = $4",
+      [scheduledTime, remindAt, updatedAt, id],
       "更新任务提醒",
     );
   },

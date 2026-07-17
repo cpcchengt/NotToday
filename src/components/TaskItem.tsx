@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Clock3, Ellipsis, X } from "lucide-react";
+import { Bell, Check, ChevronDown, Clock3, Ellipsis, X } from "lucide-react";
 
 import {
   toDateTimeLocalValue,
@@ -24,21 +24,22 @@ type TaskItemProps = {
   onToggle: (id: string) => Promise<void>;
   onUpdateTitle: (id: string, title: string) => Promise<void>;
   onUpdatePriority: (id: string, priority: TaskPriority) => Promise<void>;
-  onUpdateReminder: (id: string, remindAt: string | null) => Promise<void>;
+  onUpdateReminder: (
+    id: string,
+    remindAt: string | null,
+    scheduledTime: string,
+  ) => Promise<void>;
   onUpdateScheduledDate: (id: string, scheduledDate: string) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
 };
 
-function formatReminder(remindAt: string) {
-  const reminderDate = new Date(remindAt);
-  const isToday = reminderDate.toDateString() === new Date().toDateString();
-  const time = reminderDate.toLocaleTimeString("zh-CN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+function formatTaskTime(task: Task) {
+  const scheduledDate = new Date(`${task.scheduledDate}T00:00:00`);
+  const isToday = scheduledDate.toDateString() === new Date().toDateString();
 
-  return isToday ? `今天 ${time}` : `${reminderDate.toLocaleDateString("zh-CN")} ${time}`;
+  return isToday
+    ? `今天 ${task.scheduledTime}`
+    : `${scheduledDate.toLocaleDateString("zh-CN")} ${task.scheduledTime}`;
 }
 
 export function TaskItem({
@@ -60,7 +61,7 @@ export function TaskItem({
   const [draftTitle, setDraftTitle] = useState(task.title);
   const [draftPriority, setDraftPriority] = useState(task.priority);
   const [draftScheduledDate, setDraftScheduledDate] = useState(task.scheduledDate);
-  const [draftTime, setDraftTime] = useState(() => toDateTimeLocalValue(task.remindAt).slice(11, 16) || "16:00");
+  const [draftTime, setDraftTime] = useState(task.scheduledTime);
   const [shouldRemind, setShouldRemind] = useState(Boolean(task.remindAt));
   const [error, setError] = useState("");
 
@@ -103,7 +104,7 @@ export function TaskItem({
       setDraftTitle(task.title);
       setDraftPriority(task.priority);
       setDraftScheduledDate(task.scheduledDate);
-      setDraftTime(toDateTimeLocalValue(task.remindAt).slice(11, 16) || "16:00");
+      setDraftTime(task.scheduledTime);
       setShouldRemind(Boolean(task.remindAt));
       setError("");
       setIsEditing(false);
@@ -116,7 +117,7 @@ export function TaskItem({
     setDraftTitle(task.title);
     setDraftPriority(task.priority);
     setDraftScheduledDate(task.scheduledDate);
-    setDraftTime(toDateTimeLocalValue(task.remindAt).slice(11, 16) || "16:00");
+    setDraftTime(task.scheduledTime);
     setShouldRemind(Boolean(task.remindAt));
     setError("");
     setIsEditing(false);
@@ -138,8 +139,11 @@ export function TaskItem({
       await onUpdateScheduledDate(task.id, draftScheduledDate);
     }
     const nextReminder = shouldRemind ? `${draftScheduledDate}T${draftTime}` : null;
-    if (nextReminder !== toDateTimeLocalValue(task.remindAt)) {
-      await onUpdateReminder(task.id, nextReminder);
+    if (
+      nextReminder !== toDateTimeLocalValue(task.remindAt) ||
+      draftTime !== task.scheduledTime
+    ) {
+      await onUpdateReminder(task.id, nextReminder, draftTime);
     }
     setIsEditing(false);
   }
@@ -218,12 +222,14 @@ export function TaskItem({
                     </div>
                   ) : null}
                 </div>
-                {task.remindAt ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
+                <span className="inline-flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
+                  {task.remindAt ? (
+                    <Bell size={15} strokeWidth={1.8} />
+                  ) : (
                     <Clock3 size={15} strokeWidth={1.8} />
-                    {formatReminder(task.remindAt)}
-                  </span>
-                ) : null}
+                  )}
+                  {formatTaskTime(task)}
+                </span>
               </div>
             </>
           )}

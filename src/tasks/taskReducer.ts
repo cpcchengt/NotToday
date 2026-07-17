@@ -27,6 +27,7 @@ export type TaskAction =
       type: "updateReminder";
       id: string;
       remindAt: string | null;
+      scheduledTime: string;
       updatedAt: string;
     }
   | { type: "markReminderSent"; id: string; reminderSentAt: string }
@@ -72,6 +73,7 @@ export function taskReducer(tasks: Task[], action: TaskAction): Task[] {
         task.id === action.id
           ? {
               ...task,
+              scheduledTime: action.scheduledTime,
               remindAt: action.remindAt,
               reminderSentAt: null,
               updatedAt: action.updatedAt,

@@ -30,6 +30,7 @@ type AddTaskButtonProps = {
     priority: TaskPriority;
     remindAt: string | null;
     scheduledDate: string;
+    scheduledTime: string;
   }) => Promise<boolean>;
 };
 
@@ -433,6 +434,7 @@ export function AddTaskButton({ onAdd }: AddTaskButtonProps) {
       title,
       priority,
       scheduledDate,
+      scheduledTime: time,
       remindAt: shouldRemind ? reminderDateTime(scheduledDate, time) : null,
     });
     setIsSubmitting(false);

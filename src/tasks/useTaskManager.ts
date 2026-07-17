@@ -83,6 +83,7 @@ export function useTaskManager() {
       priority: TaskPriority;
       remindAt: string | null;
       scheduledDate: string;
+      scheduledTime: string;
     }) => {
       const now = new Date().toISOString();
       const task = createTask({
@@ -90,6 +91,7 @@ export function useTaskManager() {
         title: input.title,
         priority: input.priority,
         scheduledDate: input.scheduledDate,
+        scheduledTime: input.scheduledTime,
         remindAt: input.remindAt
           ? new Date(input.remindAt).toISOString()
           : null,
@@ -143,18 +145,28 @@ export function useTaskManager() {
         dispatch({ type: "updateScheduledDate", id, scheduledDate, updatedAt });
       });
     },
-    updateTaskReminder: async (id: string, remindAt: string | null) => {
+    updateTaskReminder: async (
+      id: string,
+      remindAt: string | null,
+      scheduledTime: string,
+    ) => {
       const updatedAt = new Date().toISOString();
       const normalizedReminder = remindAt
         ? new Date(remindAt).toISOString()
         : null;
 
       await runTaskAction(async () => {
-        await taskRepository.updateReminder(id, normalizedReminder, updatedAt);
+        await taskRepository.updateReminder(
+          id,
+          normalizedReminder,
+          scheduledTime,
+          updatedAt,
+        );
         dispatch({
           type: "updateReminder",
           id,
           remindAt: normalizedReminder,
+          scheduledTime,
           updatedAt,
         });
       });
