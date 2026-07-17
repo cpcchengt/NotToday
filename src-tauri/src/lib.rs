@@ -44,6 +44,14 @@ pub fn run() {
             "#,
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "add_task_completed_at",
+            sql: r#"
+                ALTER TABLE tasks ADD COLUMN completed_at TEXT;
+            "#,
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

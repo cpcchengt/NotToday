@@ -29,3 +29,17 @@ The goal is to make recording and managing dated events quick and distraction-fr
 - React
 - TypeScript
 - SQLite
+
+## Build
+
+Build the frontend:
+
+```bash
+pnpm build
+```
+
+Package the desktop app:
+
+```bash
+pnpm tauri build
+```

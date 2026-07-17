@@ -54,6 +54,7 @@ export function TaskItem({
   const editFormRef = useRef<HTMLFormElement>(null);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const actionsMenuRef = useRef<HTMLDivElement>(null);
   const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
   const priorityMenuRef = useRef<HTMLDivElement>(null);
   const [draftTitle, setDraftTitle] = useState(task.title);
@@ -75,10 +76,28 @@ export function TaskItem({
     document.addEventListener("pointerdown", closePriorityMenu);
     return () => document.removeEventListener("pointerdown", closePriorityMenu);
   }, [isPriorityMenuOpen]);
+
+  useEffect(() => {
+    if (!isActionsOpen) return;
+
+    function closeActionsMenu(event: PointerEvent) {
+      if (!actionsMenuRef.current?.contains(event.target as Node)) {
+        setIsActionsOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", closeActionsMenu);
+    return () => document.removeEventListener("pointerdown", closeActionsMenu);
+  }, [isActionsOpen]);
+
   useEffect(() => {
     if (!isEditing) return;
 
     function cancelWhenClickingOutside(event: PointerEvent) {
+      if ((event.target as Element).closest("[data-task-picker-portal]")) {
+        return;
+      }
+
       if (editFormRef.current?.contains(event.target as Node)) return;
 
       setDraftTitle(task.title);
@@ -159,6 +178,7 @@ export function TaskItem({
                 onScheduledDateChange={setDraftScheduledDate}
                 onShouldRemindChange={setShouldRemind}
                 onTimeChange={setDraftTime}
+                pickerPlacement="above"
                 priority={draftPriority}
                 scheduledDate={draftScheduledDate}
                 shouldRemind={shouldRemind}
@@ -209,7 +229,7 @@ export function TaskItem({
           )}
         </div>
         {!isEditing ? (
-          <div className="relative shrink-0 self-center">
+          <div className="relative shrink-0 self-center" ref={actionsMenuRef}>
             <button
               aria-expanded={isActionsOpen}
               aria-label={`${task.title} 的更多操作`}

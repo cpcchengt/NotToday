@@ -28,7 +28,7 @@ export function useTaskManager() {
       setError(null);
 
       try {
-        const loadedTasks = await taskRepository.loadToday(today);
+        const loadedTasks = await taskRepository.loadAll();
         if (!cancelled) dispatch({ type: "replace", tasks: loadedTasks });
       } catch (loadError) {
         if (!cancelled) setError(errorMessage(loadError));
@@ -74,6 +74,7 @@ export function useTaskManager() {
   }
 
   return {
+    tasks,
     todayTasks,
     isLoading,
     error,
@@ -106,10 +107,16 @@ export function useTaskManager() {
 
       const updatedAt = new Date().toISOString();
       const completed = !task.completed;
+      const completedAt = completed ? updatedAt : null;
 
       await runTaskAction(async () => {
-        await taskRepository.updateCompletion(id, completed, updatedAt);
-        dispatch({ type: "toggle", id, updatedAt });
+        await taskRepository.updateCompletion(
+          id,
+          completed,
+          completedAt,
+          updatedAt,
+        );
+        dispatch({ type: "toggle", id, completed, completedAt, updatedAt });
       });
     },
     updateTaskTitle: async (id: string, title: string) => {

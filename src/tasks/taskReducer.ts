@@ -3,7 +3,13 @@ import type { Task, TaskPriority } from "./task";
 export type TaskAction =
   | { type: "replace"; tasks: Task[] }
   | { type: "add"; task: Task }
-  | { type: "toggle"; id: string; updatedAt: string }
+  | {
+      type: "toggle";
+      id: string;
+      completed: boolean;
+      completedAt: string | null;
+      updatedAt: string;
+    }
   | { type: "updateTitle"; id: string; title: string; updatedAt: string }
   | {
       type: "updatePriority";
@@ -35,7 +41,12 @@ export function taskReducer(tasks: Task[], action: TaskAction): Task[] {
     case "toggle":
       return tasks.map((task) =>
         task.id === action.id
-          ? { ...task, completed: !task.completed, updatedAt: action.updatedAt }
+          ? {
+              ...task,
+              completed: action.completed,
+              completedAt: action.completedAt,
+              updatedAt: action.updatedAt,
+            }
           : task,
       );
     case "updateTitle":

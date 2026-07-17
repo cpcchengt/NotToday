@@ -8,6 +8,7 @@ type TaskRow = {
   id: string;
   title: string;
   completed: number | boolean;
+  completed_at: string | null;
   priority: TaskPriority;
   scheduled_date: string | null;
   remind_at: string | null;
@@ -46,6 +47,7 @@ function toTask(row: TaskRow): Task {
     id: row.id,
     title: row.title,
     completed: row.completed === true || row.completed === 1,
+    completedAt: row.completed_at,
     priority: row.priority,
     scheduledDate: row.scheduled_date ?? "",
     remindAt: row.remind_at,
@@ -81,11 +83,26 @@ async function executeUpdate(
 }
 
 export const taskRepository = {
+  async loadAll(): Promise<Task[]> {
+    try {
+      const database = await getDatabase();
+      const rows = await database.select<TaskRow[]>(
+        `SELECT id, title, completed, completed_at, priority, scheduled_date, remind_at, reminder_sent_at, created_at, updated_at
+         FROM tasks
+         ORDER BY scheduled_date ASC, created_at ASC`,
+      );
+
+      return rows.map(toTask);
+    } catch (error) {
+      throw databaseFailure("加载任务", error);
+    }
+  },
+
   async loadToday(scheduledDate: string): Promise<Task[]> {
     try {
       const database = await getDatabase();
       const rows = await database.select<TaskRow[]>(
-        `SELECT id, title, completed, priority, scheduled_date, remind_at, reminder_sent_at, created_at, updated_at
+        `SELECT id, title, completed, completed_at, priority, scheduled_date, remind_at, reminder_sent_at, created_at, updated_at
          FROM tasks
          WHERE scheduled_date = $1
          ORDER BY created_at ASC`,
@@ -101,12 +118,13 @@ export const taskRepository = {
   async create(task: Task): Promise<void> {
     await executeUpdate(
       `INSERT INTO tasks (
-        id, title, completed, priority, scheduled_date, remind_at, reminder_sent_at, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        id, title, completed, completed_at, priority, scheduled_date, remind_at, reminder_sent_at, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [
         task.id,
         task.title,
         task.completed ? 1 : 0,
+        task.completedAt,
         task.priority,
         task.scheduledDate,
         task.remindAt,
@@ -121,11 +139,12 @@ export const taskRepository = {
   async updateCompletion(
     id: string,
     completed: boolean,
+    completedAt: string | null,
     updatedAt: string,
   ): Promise<void> {
     await executeUpdate(
-      "UPDATE tasks SET completed = $1, updated_at = $2 WHERE id = $3",
-      [completed ? 1 : 0, updatedAt, id],
+      "UPDATE tasks SET completed = $1, completed_at = $2, updated_at = $3 WHERE id = $4",
+      [completed ? 1 : 0, completedAt, updatedAt, id],
       "更新任务完成状态",
     );
   },

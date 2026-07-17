@@ -29,12 +29,36 @@ describe("taskReducer", () => {
     const tasks = taskReducer([task], {
       type: "toggle",
       id: task.id,
+      completed: true,
+      completedAt: "2026-07-14T09:00:00.000Z",
       updatedAt: "2026-07-14T09:00:00.000Z",
     });
 
     expect(tasks[0]).toMatchObject({
       completed: true,
+      completedAt: "2026-07-14T09:00:00.000Z",
       updatedAt: "2026-07-14T09:00:00.000Z",
+    });
+  });
+
+  it("clears the completion time when a task is reopened", () => {
+    const task = {
+      ...makeTask(),
+      completed: true,
+      completedAt: "2026-07-14T09:00:00.000Z",
+    };
+    const tasks = taskReducer([task], {
+      type: "toggle",
+      id: task.id,
+      completed: false,
+      completedAt: null,
+      updatedAt: "2026-07-14T10:00:00.000Z",
+    });
+
+    expect(tasks[0]).toMatchObject({
+      completed: false,
+      completedAt: null,
+      updatedAt: "2026-07-14T10:00:00.000Z",
     });
   });
 

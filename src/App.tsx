@@ -14,7 +14,7 @@ function App() {
     error,
     isLoading,
     removeTask,
-    todayTasks,
+    tasks,
     toggleTask,
     updateTaskPriority,
     updateTaskReminder,
@@ -39,7 +39,7 @@ function App() {
               onUpdateReminder={updateTaskReminder}
               onUpdateScheduledDate={updateTaskScheduledDate}
               onUpdateTitle={updateTaskTitle}
-              tasks={todayTasks}
+              tasks={tasks}
             />
             <div className="px-5 pb-4 pt-3">
               <AddTaskButton onAdd={addTask} />

@@ -1,4 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { createPortal } from "react-dom";
 import {
   Bell,
   CalendarDays,
@@ -25,6 +34,7 @@ type AddTaskButtonProps = {
 };
 
 type OpenPicker = "date" | "priority" | "reminder" | "time" | null;
+type PickerPlacement = "above" | "below";
 
 const priorityOptions: Array<{
   value: TaskPriority;
@@ -73,15 +83,94 @@ type CalendarPickerProps = {
   selectedDate: string;
   onSelect: (date: string) => void;
   onClose: () => void;
+  anchorRef: RefObject<HTMLElement | null>;
+  placement?: PickerPlacement;
 };
 
 type TimePickerProps = {
   value: string;
   onSelect: (time: string) => void;
   onClose: () => void;
+  anchorRef: RefObject<HTMLElement | null>;
+  placement?: PickerPlacement;
 };
 
-function TimePicker({ value, onSelect, onClose }: TimePickerProps) {
+type FloatingPickerPanelProps = {
+  anchorRef: RefObject<HTMLElement | null>;
+  children: ReactNode;
+  className: string;
+  picker: Exclude<OpenPicker, "priority" | "reminder" | null>;
+  placement: PickerPlacement;
+  width: number;
+};
+
+function FloatingPickerPanel({
+  anchorRef,
+  children,
+  className,
+  picker,
+  placement,
+  width,
+}: FloatingPickerPanelProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [style, setStyle] = useState<CSSProperties | null>(null);
+
+  useLayoutEffect(() => {
+    function updatePosition() {
+      const anchor = anchorRef.current;
+      if (!anchor) return;
+
+      const anchorRect = anchor.getBoundingClientRect();
+      const panelHeight = panelRef.current?.offsetHeight ?? 0;
+      const viewportPadding = 8;
+      const gap = 8;
+      const left = Math.min(
+        window.innerWidth - width - viewportPadding,
+        Math.max(viewportPadding, anchorRect.right - width),
+      );
+      const preferredTop =
+        placement === "below"
+          ? anchorRect.bottom + gap
+          : anchorRect.top - panelHeight - gap;
+      const top = Math.min(
+        window.innerHeight - viewportPadding - panelHeight,
+        Math.max(viewportPadding, preferredTop),
+      );
+
+      setStyle({ left, position: "fixed", top, width, zIndex: 1000 });
+    }
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [anchorRef, placement, width]);
+
+  return createPortal(
+    <div
+      className={className}
+      data-task-picker-portal="true"
+      data-task-picker-type={picker}
+      ref={panelRef}
+      style={style ?? { position: "fixed", visibility: "hidden", width }}
+    >
+      {children}
+    </div>,
+    document.body,
+  );
+}
+
+function TimePicker({
+  value,
+  onSelect,
+  onClose,
+  anchorRef,
+  placement = "above",
+}: TimePickerProps) {
   const [selectedHour, selectedMinute] = value.split(":");
   const hours = Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, "0"));
   const minutes = Array.from({ length: 12 }, (_, minute) => String(minute * 5).padStart(2, "0"));
@@ -96,7 +185,13 @@ function TimePicker({ value, onSelect, onClose }: TimePickerProps) {
   }
 
   return (
-    <div className="absolute bottom-full right-0 z-50 mb-2 grid w-36 grid-cols-2 gap-1 rounded-xl border border-stone-200 bg-[#fdfaf7] p-1.5 shadow-[0_12px_30px_rgba(78,58,44,0.18)] dark:border-stone-700 dark:bg-stone-900">
+    <FloatingPickerPanel
+      anchorRef={anchorRef}
+      className="grid w-36 grid-cols-2 gap-1 rounded-xl border border-stone-200 bg-[#fdfaf7] p-1.5 shadow-[0_12px_30px_rgba(78,58,44,0.18)] dark:border-stone-700 dark:bg-stone-900"
+      picker="time"
+      placement={placement}
+      width={144}
+    >
       <div className="time-picker-column max-h-36 overflow-y-auto pr-0.5">
         {hours.map((hour) => (
           <button className={hour === selectedHour ? "time-picker-option is-selected" : "time-picker-option"} key={hour} onClick={() => selectHour(hour)} type="button">
@@ -111,11 +206,17 @@ function TimePicker({ value, onSelect, onClose }: TimePickerProps) {
           </button>
         ))}
       </div>
-    </div>
+    </FloatingPickerPanel>
   );
 }
 
-function CalendarPicker({ selectedDate, onSelect, onClose }: CalendarPickerProps) {
+function CalendarPicker({
+  selectedDate,
+  onSelect,
+  onClose,
+  anchorRef,
+  placement = "above",
+}: CalendarPickerProps) {
   const [month, setMonth] = useState(() => fromDateKey(selectedDate));
   const year = month.getFullYear();
   const monthIndex = month.getMonth();
@@ -130,7 +231,13 @@ function CalendarPicker({ selectedDate, onSelect, onClose }: CalendarPickerProps
   }
 
   return (
-    <div className="absolute bottom-full right-0 z-50 mb-2 w-64 rounded-xl border border-stone-200 bg-[#fdfaf7] p-3 shadow-[0_12px_30px_rgba(78,58,44,0.18)] dark:border-stone-700 dark:bg-stone-900">
+    <FloatingPickerPanel
+      anchorRef={anchorRef}
+      className="w-64 rounded-xl border border-stone-200 bg-[#fdfaf7] p-3 shadow-[0_12px_30px_rgba(78,58,44,0.18)] dark:border-stone-700 dark:bg-stone-900"
+      picker="date"
+      placement={placement}
+      width={256}
+    >
       <div className="flex items-center justify-between text-xs text-stone-700 dark:text-stone-200">
         <button aria-label="上个月" className="grid size-7 place-items-center rounded-md hover:bg-stone-100 dark:hover:bg-stone-800" onClick={() => moveMonth(-1)} type="button">
           <ChevronLeft size={15} />
@@ -170,7 +277,7 @@ function CalendarPicker({ selectedDate, onSelect, onClose }: CalendarPickerProps
           );
         })}
       </div>
-    </div>
+    </FloatingPickerPanel>
   );
 }
 
@@ -179,6 +286,7 @@ export type TaskFormOptionsProps = {
   scheduledDate: string;
   shouldRemind: boolean;
   time: string;
+  pickerPlacement?: PickerPlacement;
   onPriorityChange: (priority: TaskPriority) => void;
   onScheduledDateChange: (date: string) => void;
   onShouldRemindChange: (shouldRemind: boolean) => void;
@@ -190,13 +298,38 @@ export function TaskFormOptions({
   scheduledDate,
   shouldRemind,
   time,
+  pickerPlacement = "above",
   onPriorityChange,
   onScheduledDateChange,
   onShouldRemindChange,
   onTimeChange,
 }: TaskFormOptionsProps) {
   const [openPicker, setOpenPicker] = useState<OpenPicker>(null);
+  const dateButtonRef = useRef<HTMLButtonElement>(null);
+  const timeButtonRef = useRef<HTMLButtonElement>(null);
   const selectedPriority = priorityOptions.find((option) => option.value === priority)!;
+
+  useEffect(() => {
+    if (openPicker !== "date" && openPicker !== "time") return;
+
+    function closePickerWhenClickingOutside(event: PointerEvent) {
+      const target = event.target as Element;
+      const activeButton =
+        openPicker === "date" ? dateButtonRef.current : timeButtonRef.current;
+
+      if (activeButton?.contains(target)) return;
+      if (target.closest(`[data-task-picker-type="${openPicker}"]`)) return;
+
+      setOpenPicker(null);
+    }
+
+    document.addEventListener("pointerdown", closePickerWhenClickingOutside);
+    return () =>
+      document.removeEventListener(
+        "pointerdown",
+        closePickerWhenClickingOutside,
+      );
+  }, [openPicker]);
 
   return (
     <>
@@ -213,17 +346,17 @@ export function TaskFormOptions({
       <div className="relative flex items-center gap-2 border-b border-stone-100 py-2 dark:border-stone-800">
         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium leading-none text-stone-500 dark:text-stone-400"><CalendarDays size={14} strokeWidth={1.6} />时间</span>
         <div className="relative ml-auto">
-          <button aria-expanded={openPicker === "date"} className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-2 py-1 text-[11px] leading-none text-stone-600 outline-none dark:bg-stone-800 dark:text-stone-300" onClick={() => setOpenPicker(openPicker === "date" ? null : "date")} type="button">{formatScheduledDate(scheduledDate)}<ChevronDown size={12} /></button>
-          {openPicker === "date" ? <CalendarPicker onClose={() => setOpenPicker(null)} onSelect={onScheduledDateChange} selectedDate={scheduledDate} /> : null}
+          <button aria-expanded={openPicker === "date"} className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-2 py-1 text-[11px] leading-none text-stone-600 outline-none dark:bg-stone-800 dark:text-stone-300" onClick={() => setOpenPicker(openPicker === "date" ? null : "date")} ref={dateButtonRef} type="button">{formatScheduledDate(scheduledDate)}<ChevronDown size={12} /></button>
+          {openPicker === "date" ? <CalendarPicker anchorRef={dateButtonRef} onClose={() => setOpenPicker(null)} onSelect={onScheduledDateChange} placement={pickerPlacement} selectedDate={scheduledDate} /> : null}
         </div>
-        <button aria-expanded={openPicker === "time"} aria-label="任务时间" className="time-select" onClick={() => setOpenPicker(openPicker === "time" ? null : "time")} type="button">
+        <button aria-expanded={openPicker === "time"} aria-label="任务时间" className="time-select" onClick={() => setOpenPicker(openPicker === "time" ? null : "time")} ref={timeButtonRef} type="button">
           <Clock3 size={11} />
           <span>{time.split(":")[0]}</span>
           <span className="text-stone-400">:</span>
           <span>{time.split(":")[1]}</span>
           <ChevronDown size={11} />
         </button>
-        {openPicker === "time" ? <TimePicker onClose={() => setOpenPicker(null)} onSelect={onTimeChange} value={time} /> : null}
+        {openPicker === "time" ? <TimePicker anchorRef={timeButtonRef} onClose={() => setOpenPicker(null)} onSelect={onTimeChange} placement={pickerPlacement} value={time} /> : null}
       </div>
 
       <div className="relative flex items-center gap-2 border-b border-stone-100 py-2 dark:border-stone-800">
@@ -242,6 +375,8 @@ export function TaskFormOptions({
 export function AddTaskButton({ onAdd }: AddTaskButtonProps) {
   const [isAdding, setIsAdding] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const addDateButtonRef = useRef<HTMLButtonElement>(null);
+  const addTimeButtonRef = useRef<HTMLButtonElement>(null);
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [scheduledDate, setScheduledDate] = useState(() => toDateKey(new Date()));
@@ -266,6 +401,10 @@ export function AddTaskButton({ onAdd }: AddTaskButtonProps) {
     if (!isAdding) return;
 
     function closeWhenClickingOutside(event: PointerEvent) {
+      if ((event.target as Element).closest("[data-task-picker-portal]")) {
+        return;
+      }
+
       if (formRef.current?.contains(event.target as Node)) return;
 
       setTitle("");
@@ -336,17 +475,17 @@ export function AddTaskButton({ onAdd }: AddTaskButtonProps) {
           <div className="relative flex items-center gap-2 border-b border-stone-100 py-2 dark:border-stone-800">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-medium leading-none text-stone-500 dark:text-stone-400"><CalendarDays size={14} strokeWidth={1.6} />时间</span>
             <div className="relative ml-auto">
-              <button aria-expanded={openPicker === "date"} className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-2 py-1 text-[11px] leading-none text-stone-600 outline-none dark:bg-stone-800 dark:text-stone-300" onClick={() => setOpenPicker(openPicker === "date" ? null : "date")} type="button">{formatScheduledDate(scheduledDate)}<ChevronDown size={12} /></button>
-              {openPicker === "date" ? <CalendarPicker onClose={() => setOpenPicker(null)} onSelect={setScheduledDate} selectedDate={scheduledDate} /> : null}
+              <button aria-expanded={openPicker === "date"} className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-2 py-1 text-[11px] leading-none text-stone-600 outline-none dark:bg-stone-800 dark:text-stone-300" onClick={() => setOpenPicker(openPicker === "date" ? null : "date")} ref={addDateButtonRef} type="button">{formatScheduledDate(scheduledDate)}<ChevronDown size={12} /></button>
+              {openPicker === "date" ? <CalendarPicker anchorRef={addDateButtonRef} onClose={() => setOpenPicker(null)} onSelect={setScheduledDate} selectedDate={scheduledDate} /> : null}
             </div>
-            <button aria-expanded={openPicker === "time"} aria-label="任务时间" className="time-select" onClick={() => setOpenPicker(openPicker === "time" ? null : "time")} type="button">
+            <button aria-expanded={openPicker === "time"} aria-label="任务时间" className="time-select" onClick={() => setOpenPicker(openPicker === "time" ? null : "time")} ref={addTimeButtonRef} type="button">
               <Clock3 size={11} />
               <span>{time.split(":")[0]}</span>
               <span className="text-stone-400">:</span>
               <span>{time.split(":")[1]}</span>
               <ChevronDown size={11} />
             </button>
-            {openPicker === "time" ? <TimePicker onClose={() => setOpenPicker(null)} onSelect={setTime} value={time} /> : null}
+            {openPicker === "time" ? <TimePicker anchorRef={addTimeButtonRef} onClose={() => setOpenPicker(null)} onSelect={setTime} value={time} /> : null}
           </div>
 
           <div className="relative flex items-center gap-2 border-b border-stone-100 py-2 dark:border-stone-800">
