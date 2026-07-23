@@ -13,11 +13,11 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "任务操作失败。请稍后重试。";
 }
 
-export function useTaskManager() {
+export function useTaskManager(currentDate: Date) {
   const [tasks, dispatch] = useReducer(taskReducer, []);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const today = getDateKey(new Date());
+  const today = getDateKey(currentDate);
   const todayTasks = getTasksForDate(tasks, today);
 
   useEffect(() => {

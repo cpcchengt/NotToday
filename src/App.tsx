@@ -6,9 +6,11 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { TodayTasks } from "./components/TodayTasks";
 import { WindowHeader } from "./components/WindowHeader";
 import { useTaskManager } from "./tasks/useTaskManager";
+import { useCurrentDate } from "./useCurrentDate";
 
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const currentDate = useCurrentDate();
   const {
     addTask,
     error,
@@ -20,7 +22,7 @@ function App() {
     updateTaskReminder,
     updateTaskScheduledDate,
     updateTaskTitle,
-  } = useTaskManager();
+  } = useTaskManager(currentDate);
   const completedGoalCount = tasks.filter((task) => task.completed).length;
 
   return (
@@ -32,6 +34,7 @@ function App() {
         ) : (
           <>
             <TodayTasks
+              currentDate={currentDate}
               error={error}
               isLoading={isLoading}
               onRemove={removeTask}

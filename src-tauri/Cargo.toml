@@ -1,6 +1,6 @@
 [package]
 name = "not-today"
-version = "1.0.0"
+version = "1.0.1"
 description = "A desktop-first floating event manager"
 authors = ["NotToday contributors"]
 license = ""

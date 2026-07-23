@@ -6,6 +6,7 @@ import backgroundIllustration from "../assets/background.png";
 import { TaskItem } from "./TaskItem";
 
 type TodayTasksProps = {
+  currentDate: Date;
   tasks: Task[];
   onToggle: (id: string) => Promise<void>;
   onUpdateTitle: (id: string, title: string) => Promise<void>;
@@ -70,15 +71,6 @@ export function formatChineseLunarDate(value: Date) {
 
   return `农历${month}${formatChineseLunarDay(day)}`;
 }
-const today = new Date();
-const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(
-  today,
-);
-const date = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-}).format(today);
-const lunarDate = formatChineseLunarDate(today);
 const prioritySortOrder: Record<TaskPriority, number> = {
   high: 0,
   medium: 1,
@@ -144,6 +136,7 @@ function TaskSection({ label, tasks, children }: TaskSectionProps) {
 }
 
 export function TodayTasks({
+  currentDate,
   tasks,
   onToggle,
   onUpdateTitle,
@@ -154,7 +147,15 @@ export function TodayTasks({
   isLoading,
   error,
 }: TodayTasksProps) {
-  const todayKey = getDateKey(new Date());
+  const todayKey = getDateKey(currentDate);
+  const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(
+    currentDate,
+  );
+  const date = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(currentDate);
+  const lunarDate = formatChineseLunarDate(currentDate);
   const visibleTasks = tasks.filter((task) => isCompletedToday(task, todayKey));
   const pastTasks = sortTasks(
     visibleTasks.filter((task) => task.scheduledDate < todayKey),
